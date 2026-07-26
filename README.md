@@ -13,6 +13,15 @@ Various tools for Max for Live.
 Each `.amxd` loads its `.js` by name, so keep each device's two files together.
 See [BUILD.md](BUILD.md) for full parameter details and setup notes.
 
+## Support
+
+Since I'm now incurring costs (I recently started using LLMs) which would be good to
+at least cover, I now have a Buy Me a Coffee page:
+
+https://buymeacoffee.com/chrispurusha
+
+Thanks for any donations!
+
 ## License
 
 Copyright (C) 2026 Chris Purusha
