@@ -24,7 +24,7 @@ Thanks for any donations!
 
 ## License
 
-Copyright (C) 2026 Chris Purusha
+Copyright (C) 2026 Chris Turner <chris_purusha@icloud.com>
 
 This project is free software, licensed under the **GNU General Public License
 v3.0 or later**. See [LICENSE](LICENSE) for the full text. Each source file carries

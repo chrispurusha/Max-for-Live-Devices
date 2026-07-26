@@ -1,6 +1,6 @@
 // scenemover.js — footswitch -> debounced -> advance & fire Session scene (M4L)
 //
-// Copyright (C) 2026 Chris Purusha
+// Copyright (C) 2026 Chris Turner <chris_purusha@icloud.com>
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
