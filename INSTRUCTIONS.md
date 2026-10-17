@@ -102,9 +102,9 @@ A track is busy while any of these hold:
 
 - a clip on it is fired or playing,
 - it is taking live input — armed with monitoring on Auto, or monitoring set to In,
-- its output meter is above `Silence`.
+- its output meter is above `Silence Thresh`.
 
-It sleeps once it has been idle for `Hold` seconds, so release and reverb tails ring
+It sleeps once it has been idle for `Hold Secs`, so release and reverb tails ring
 out first; any sound restarts the count. It never sleeps within 2 s of waking. It
 wakes the moment a clip is fired, or the track is armed.
 
@@ -116,8 +116,8 @@ the device, switches everything back on and hands the buttons back.
 |---|---|---|---|
 | Enable     | Off = every device switched on and released | 0/1 | On |
 | Keep awake | Hold everything on | 0/1 | Off |
-| Hold s     | Idle time before sleeping | 0.5–60 | 4 |
-| Silence    | Output meter level counted as silence | 0–1 | 0.01 |
+| Hold Secs  | Idle time before sleeping | 0.5–60 | 4 |
+| Silence Thresh | Output meter level counted as silence | 0–1 | 0.01 |
 | sleepnow   | Switch off now, and stay off (clips ignored) until wakenow | — | — |
 | wakenow    | Switch on, and back to automatic | — | — |
 
@@ -128,7 +128,7 @@ mapped (⌘M) to every instance's `Keep awake` at once, as a panic button.
 
 - **Session View only.** A clip playing from the Arrangement is not seen, so the
   track would go to sleep under it.
-- **If a tail is cut off**, lower `Silence` or raise `Hold`.
+- **If a tail is cut off**, lower `Silence Thresh` or raise `Hold Secs`.
 - Some plug-ins may click or take a moment when switched back on — try each of
   yours by launching a clip with the track asleep.
 
