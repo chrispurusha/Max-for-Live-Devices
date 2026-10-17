@@ -96,6 +96,14 @@ Every other device on the track — plug-ins, Live's devices, Racks — is contr
 To leave one alone, rename it so it starts with `!` (right-click > Rename). Do that
 for anything that has to run with no notes, such as an LFO modulating another track.
 
+**Devices you have switched off.** When AutoSleep starts — on loading the set, or on
+being dropped onto the track — it checks the devices it would control. If some are
+off and some on, the off ones were switched off by hand, and it does nothing: the
+status line reads `not started - <device> is off`. Switch that device on, remove
+it, or start its name with `!` to keep it off and out of AutoSleep's hands, and
+AutoSleep starts by itself. If *every* device is off, the set was saved while the track was
+asleep, and AutoSleep switches them all on as usual.
+
 ### When it sleeps and wakes
 
 A track is busy while any of these hold:

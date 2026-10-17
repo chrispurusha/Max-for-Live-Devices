@@ -18,7 +18,9 @@
 // devices, Racks) is switched off once the track is idle — no clip fired or
 // playing, no live input, output below a threshold for Hold seconds — and back on
 // the moment a clip is FIRED, i.e. during the launch-quantization wait, before its
-// first note. A device whose name starts with "!" is left alone.
+// first note. A device whose name starts with "!" is left alone. If, when it starts,
+// some of the devices are off and some on, it takes no control and says which is off:
+// those were switched off by hand. All off is a set saved asleep, and is switched on.
 //
 // Each device's "Device On" is driven by its own [live.remote~], created here by
 // scripting, so switching never lands in Live's undo history (and the activator
@@ -61,6 +63,7 @@ var pat      = this.patcher;
 var awake      = true;
 var debugOn    = false;
 var manualOff  = false;
+var blocked    = null;      // names of devices found switched off by hand at start
 var firedIdx   = -1;
 var playingIdx = -1;
 var lastActive = 0;
@@ -104,8 +107,7 @@ function bang() {
     thisId = parseInt(new LiveAPI("this_device").id);
     track  = new LiveAPI("this_device canonical_parent");
     observers = [observe("fired_slot_index"), observe("playing_slot_index"), observe("devices")];
-    if (g.enabled) { rebuild(); }
-    wake("load");
+    if (g.enabled) { start("load"); }
     if (poll) { poll.cancel(); }
     poll = new Task(tick, this);
     poll.interval = POLL_MS;
@@ -122,10 +124,10 @@ function onChange(args) {
     if (!args || args.length < 2) { return; }
     if (args[0] == "fired_slot_index")        { firedIdx = args[1]; }
     else if (args[0] == "playing_slot_index") { playingIdx = args[1]; }
-    else if (args[0] == "devices")            { if (g.enabled) { later(rebuild); } return; }
+    else if (args[0] == "devices")            { later(rebuildIfRunning); return; }
     else { return; }
     if (debugOn) { post("autosleep: " + args[0] + " " + args[1] + "\n"); }
-    if (clipActive() && !awake && !manualOff) { later(function () { wake("clip"); }); }
+    if (clipActive() && !awake && !manualOff && !blocked) { later(function () { wake("clip"); }); }
 }
 
 // ---------------------------------------------------------------------------
@@ -142,7 +144,9 @@ function inputLive() {
 function level() { return Number(first(track.get("output_meter_level"))) || 0; }
 
 function tick() {
-    if (!track || !g.enabled || manualOff) { return; }
+    if (!track || !g.enabled) { return; }
+    if (blocked) { start("device switched on", true); return; }     // starts once nothing is off by hand
+    if (manualOff) { return; }
     var t    = now();
     var lev  = level();
     var busy = g.keepAwake || clipActive() || inputLive() || lev > g.threshold;
@@ -219,9 +223,9 @@ function verify(v) {
     verifyTask.schedule(300);
 }
 
-function rebuild() {
-    if (!track) { return; }
-    releaseAll(false);
+// the devices to control: every one on the track but this, and any named "!..."
+function candidates() {
+    var list = [];
     var dev = new LiveAPI("this_device");
     var deviceIds = ids(track.get("devices"));
     for (var i = 0; i < deviceIds.length; i++) {
@@ -231,8 +235,46 @@ function rebuild() {
         var name = String(dev.get("name"));
         if (name.charAt(0) == "!") { continue; }
         var params = ids(dev.get("parameters"));
-        if (params.length) { addRemote(params[0], name); }          // parameter 0 is Device On
+        if (params.length) { list.push({ name: name, paramId: params[0] }); }   // parameter 0 is Device On
     }
+    return list;
+}
+
+// take control, unless some devices are off and some on: those were switched off by hand.
+// All off at load is a set saved asleep; all off on a re-check is the user's doing.
+function start(why, recheck) {
+    var list = candidates();
+    var off = [];
+    for (var i = 0; i < list.length; i++) {
+        if (Number(first(byId(list[i].paramId).get("value"))) == 0) { off.push(list[i].name); }
+    }
+    if (off.length && (off.length < list.length || recheck)) {
+        var changed = !blocked || blocked.join("\n") != off.join("\n");
+        releaseAll(false);
+        blocked = off;
+        if (changed) {
+            post("autosleep: not started - switched off: " + off.join(", ") +
+                 ". Switch it on, remove it, or start its name with !\n");
+            status();
+        }
+        return;
+    }
+    blocked = null;
+    rebuild(list);
+    wake(why);
+}
+
+// a device list change, judged when it is handled: start() may have refused control since
+function rebuildIfRunning() {
+    if (!g.enabled) { return; }
+    if (blocked) { start("devices changed", true); } else { rebuild(); }
+}
+
+function rebuild(list) {
+    if (!track) { return; }
+    releaseAll(false);
+    if (!list) { list = candidates(); }
+    for (var i = 0; i < list.length; i++) { addRemote(list[i].paramId, list[i].name); }
     setAll(awake ? 1 : 0);
     status();
 }
@@ -281,6 +323,10 @@ function sweepOrphans() {
 }
 
 function status() {
+    if (g.enabled && blocked) {
+        outlet(0, ["not", "started", "-", blocked[0], "is", "off"].concat(blocked.length > 1 ? ["+" + (blocked.length - 1)] : []));
+        return;
+    }
     var state = !g.enabled ? "off" : (manualOff ? "held off" : (g.keepAwake ? "held on" : (awake ? "awake" : "asleep")));
     outlet(0, remotes.length == 1 ? [state, "-", remotes[0].name] : [state, "-", remotes.length, "devices"]);
 }
@@ -291,11 +337,11 @@ function status() {
 function enabled(v) {
     g.enabled = (v ? 1 : 0);
     if (!track) { return; }
-    if (g.enabled) { rebuild(); wake("enabled"); }
-    else           { releaseAll(false); awake = true; manualOff = false; status(); }
+    if (g.enabled) { start("enabled"); }
+    else           { releaseAll(false); awake = true; manualOff = false; blocked = null; status(); }
 }
 
-function keepawake(v) { g.keepAwake = (v ? 1 : 0); if (g.keepAwake) { manualOff = false; } if (g.keepAwake && track && g.enabled) { wake("held"); } else { status(); } }
+function keepawake(v) { g.keepAwake = (v ? 1 : 0); if (g.keepAwake) { manualOff = false; } if (g.keepAwake && track && g.enabled && !blocked) { wake("held"); } else { status(); } }
 function hold(v)      { g.holdMs = Math.max(0.5, v) * 1000; }
 function thresh(v)    { g.threshold = Math.max(0, v); }
 function allon()      { keepawake(1); }
@@ -303,13 +349,13 @@ function auto()       { keepawake(0); }
 function debug(v)     { debugOn = (v != 0); }
 
 function sleepnow() {
-    if (!track || !g.enabled) { post("autosleep: sleep needs Enable on\n"); return; }
+    if (!track || !g.enabled || blocked) { post("autosleep: sleep needs Enable on, and the device started\n"); return; }
     manualOff = true;
     sleep();
 }
 function wakenow() {
     manualOff = false;
-    if (track && g.enabled) { wake("manual"); }
+    if (track && g.enabled && !blocked) { wake("manual"); }
 }
 
 function show() {
