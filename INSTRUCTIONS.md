@@ -126,6 +126,9 @@ the device, switches everything back on and hands the buttons back.
 | Keep awake | Hold everything on | 0/1 | Off |
 | Hold Secs  | Idle time before sleeping | 0.5–60 | 4 |
 | Silence Thresh | Output meter level counted as silence | 0–1 | 0.01 |
+| Stagger ms | On waking, switch the devices on this many ms apart, to spread their start-up load (0 = all at once). Sleep is never staggered | 0–500 | 20 |
+| Pre-delay ms | On waking, wait this long before switching the first device on; the track's volume is held at −∞ from the start of the wait | 0–2000 | 250 |
+| Quiet ms | On waking, hold the track's volume at −∞ until this long after the last device is on, to hide start-up clicks; the exact volume is put back and the fader released (0 = off). Keep Pre-delay + Stagger × devices + Quiet inside the clip's launch quantization, or the clip's start is muted too | 0–2000 | 100 |
 | sleepnow   | Switch off now, and stay off (clips ignored) until wakenow | — | — |
 | wakenow    | Switch on, and back to automatic | — | — |
 
@@ -145,7 +148,14 @@ mapped (⌘M) to every instance's `Keep awake` at once, as a panic button.
 Open the device (**Edit**) and the Max Console. AutoSleep logs each device it takes
 control of, and every sleep and wake. Two messages can be sent to the `[js]` from a
 message box in the editor: `show` lists the devices it controls, and `debug 1`
-prints the meter, the clip state and why the track counts as busy.
+prints the meter, the clip state and why the track counts as busy, and each wake's CPU samples (below).
+
+After every wake the device shows Live's worst CPU peak and the device that caused it, beside the buttons:
+`CPU 195% after Diva (+12ms) | pre 30% quiet 195%`. Each device is credited with the peak between its switch-on
+and the next one's, so set Stagger long (300 ms or so) while hunting. Above 100% Live's audio thread overran,
+which drops out the whole output. The Max Console gets the peak after every device on each wake, and with
+`debug 1` every 25 ms sample. `CPU: not available` if Live does not offer the reading. A clip launched on a
+track that is already awake shows `CPU (awake) N%` over the same span: the same launch with no wake, to compare.
 
 ---
 

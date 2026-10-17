@@ -8,7 +8,8 @@ All three are generated programmatically from Live's stock **Max MIDI Effect** t
 (`…/App-Resources/Misc/Max Devices/Max MIDI Effect.amxd`): parse the `ptch` chunk's
 patcher JSON, splice in `[js <file>]` + `live.*` params (each via `[prepend <name>]`)
 + a `[live.thisdevice]→[outputvalue]` load-time push, then re-wrap as
-`ampf | mmmm | meta(0) | ptch(len) | <json>`. See the session builder script.
+`ampf | mmmm | meta(0) | ptch(len) | <json>`. AutoSleep's builder is `tools/build_autosleep.py`
+(`/usr/bin/python3 tools/build_autosleep.py AutoSleep.amxd`); the others' were session scripts and are not kept.
 
 Notes:
 - Integer Live params cap at 256 steps regardless of max, so `Time` is a **float**
