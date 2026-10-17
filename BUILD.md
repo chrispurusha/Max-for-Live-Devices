@@ -1,7 +1,7 @@
 # Building the devices
 
 How the `.amxd` files in this repository are made. To **use** the devices, see
-[Instructions.md](Instructions.md).
+[INSTRUCTIONS.md](INSTRUCTIONS.md).
 
 ## Rebuilding the .amxd files
 All three are generated programmatically from Live's stock **Max MIDI Effect** template

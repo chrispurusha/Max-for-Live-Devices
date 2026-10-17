@@ -14,7 +14,7 @@ Various tools for Max for Live.
   to save CPU in large sets.
 
 Each `.amxd` loads its `.js` by name, so keep each device's two files together.
-See [Instructions.md](Instructions.md) for installing and using them, and
+See [INSTRUCTIONS.md](INSTRUCTIONS.md) for installing and using them, and
 [BUILD.md](BUILD.md) for how the `.amxd` files are built.
 
 ## Support
