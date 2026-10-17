@@ -9,6 +9,9 @@ Various tools for Max for Live.
   Lockout, Trigger.
 - **Scene Mover** (`SceneMover.amxd` + `scenemover.js`) — a footswitch, debounced,
   advances and fires the next Session scene via the Live API.
+- **AutoSleep** (`AutoSleep.amxd` + `autosleep.js`) — switches a track's plug-ins and
+  devices off while it is idle, and back on as soon as one of its clips is launched,
+  to save CPU in large sets.
 
 Each `.amxd` loads its `.js` by name, so keep each device's two files together.
 See [BUILD.md](BUILD.md) for full parameter details and setup notes.
