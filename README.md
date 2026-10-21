@@ -2,6 +2,10 @@
 
 Various tools for Max for Live.
 
+## Working with LLMs
+
+Development started as a solo project. As the project has evolved, I've recently incorporated LLM-assisted development into the workflow, using it as a tool for research, coding, debugging, and experimentation.
+
 ## Devices
 
 - **MIDI CC Debouncer** (`MidiCCDebouncer.amxd` + `debouncer.js`) — cleans a noisy
